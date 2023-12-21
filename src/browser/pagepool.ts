@@ -1,4 +1,8 @@
-import { Browser, executablePath, Page } from "puppeteer";
+import {
+	Browser,
+	// executablePath, 
+	Page
+} from "puppeteer";
 import puppeteer from "./puppeteer";
 
 const { PUPPETEER_WS_ENDPOINT } = process.env;
@@ -44,11 +48,12 @@ export default class PagePool {
 		this._browser = PUPPETEER_WS_ENDPOINT
 			? await puppeteer.connect({ browserWSEndpoint: PUPPETEER_WS_ENDPOINT })
 			: await puppeteer.launch({
-					ignoreHTTPSErrors: true,
-					headless: process.env.DEBUG !== "true" ? "new" : false,
-					executablePath: executablePath(),
-					userDataDir: "./tmp/translateer-data",
-			  });
+				ignoreHTTPSErrors: true,
+				headless: process.env.DEBUG !== "true" ? "new" : false,
+				// executablePath: executablePath(),
+				executablePath: "/usr/bin/chromium-browser",
+				userDataDir: "./tmp/translateer-data",
+			});
 		console.log("browser launched");
 	}
 
