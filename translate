@@ -4,12 +4,13 @@
 FOLDER=data/output_31
 INFILE=$FOLDER/input.txt
 OPFILE=$FOLDER/output.txt
+PORT=${PORT:-8999}
 
 # Read the input file line by line
 while read -r LINE
 do
   # Print the line to query string
-  response=$(curl -G --data-urlencode "text=$LINE" "https://t.song.work/api?from=en&to=mn")
+  response=$(curl -G --data-urlencode "text=$LINE" "http://127.0.0.1:$PORT/api?from=en&to=mn")
   echo $response | jq -r '.result' >> $OPFILE
 
   # remove line form input file
