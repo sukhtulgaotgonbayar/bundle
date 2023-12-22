@@ -1,5 +1,6 @@
-import Fastify from "fastify";
+import Fastify, { FastifyPluginAsync } from "fastify";
 import PagePool from "./browser/pagepool";
+import fastifyEnv from "@fastify/env";
 
 const fastify = Fastify({ logger: true });
 
@@ -22,6 +23,24 @@ const { PAGE_COUNT = "5", PORT = "8999" } = process.env;
 
 	console.log("ready");
 
+	const myPlugin: FastifyPluginAsync = async (fastify, opts) => {
+		// Plugin code goes here
+		const fastifyEnvType: any = fastifyEnv;
+		await fastify.register(fastifyEnvType, {
+			schema: {
+				type: "object",
+				required: ["PORT"],
+				properties: {
+					PORT: {
+						type: "string",
+					},
+				},
+			},
+			dotenv: true,
+		});
+	};
+
+	await fastify.register(myPlugin, {});
 	fastify.register(require("./routers/api").default, { prefix: "/api" });
 	fastify.register(require("./routers/index").default, { prefix: "/" });
 

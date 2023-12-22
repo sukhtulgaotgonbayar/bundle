@@ -1,6 +1,6 @@
 import {
 	Browser,
-	// executablePath, 
+	executablePath, 
 	Page
 } from "puppeteer";
 import puppeteer from "./puppeteer";
@@ -50,8 +50,8 @@ export default class PagePool {
 			: await puppeteer.launch({
 				ignoreHTTPSErrors: true,
 				headless: process.env.DEBUG !== "true" ? "new" : false,
-				// executablePath: executablePath(),
-				executablePath: "/usr/bin/chromium-browser",
+				executablePath: executablePath(),
+				// executablePath: "/usr/bin/chromium-browser",
 				userDataDir: "./tmp/translateer-data",
 			});
 		console.log("browser launched");
