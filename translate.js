@@ -2,6 +2,7 @@ const axios = require('axios');
 const qs = require('qs');
 const dotenv = require('dotenv');
 const fs = require('fs');
+const { exit } = require('process');
 
 // Load .env file
 dotenv.config();
@@ -19,6 +20,10 @@ const lines = file.split('\n');
 
 (async () => {
   // await loops
+  if ((lines.length === 1 && lines[0] === '') || lines.length === 0) {
+    console.log('No lines to translate', PORT);
+    exit(0);
+  }
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
