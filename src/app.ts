@@ -3,26 +3,7 @@ import PagePool from "./browser/pagepool";
 import fastifyEnv from "@fastify/env";
 
 const fastify = Fastify({ logger: true });
-
-const { PAGE_COUNT = "5", PORT = "8999" } = process.env;
-
 (async () => {
-	console.log("connecting to puppeteer...");
-
-	console.log("connected");
-
-	console.log("initializing pages...");
-
-	try {
-		await new PagePool(parseInt(PAGE_COUNT, 10)).init();
-	} catch (e) {
-		console.log("Failed to initialize pages");
-		console.error(e);
-		process.exit(1);
-	}
-
-	console.log("ready");
-
 	const myPlugin: FastifyPluginAsync = async (fastify, opts) => {
 		// Plugin code goes here
 		const fastifyEnvType: any = fastifyEnv;
@@ -41,6 +22,24 @@ const { PAGE_COUNT = "5", PORT = "8999" } = process.env;
 	};
 
 	await fastify.register(myPlugin, {});
+
+	const { PAGE_COUNT = "5", PORT = "8999" } = process.env;
+
+	console.log("connecting to puppeteer...");
+
+	console.log("connected");
+
+	console.log("initializing pages...");
+
+	try {
+		await new PagePool(parseInt(PAGE_COUNT, 10)).init();
+	} catch (e) {
+		console.log("Failed to initialize pages");
+		console.error(e);
+		process.exit(1);
+	}
+
+	console.log("ready");
 	fastify.register(require("./routers/api").default, { prefix: "/api" });
 	fastify.register(require("./routers/index").default, { prefix: "/" });
 
