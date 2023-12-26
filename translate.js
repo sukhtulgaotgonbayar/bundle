@@ -9,8 +9,11 @@ dotenv.config();
 
 // Define the input file
 const FOLDER = 'data';
-let INFILE = `${FOLDER}/input.txt`;
-const OPFILE = `${FOLDER}/output.txt`;
+const files = fs.readdirSync(FOLDER);
+const OUTPUT_FILE = files.find(file => file.includes('output'));
+const INPUT_FILE = files.find(file => file.includes('input'));
+const INFILE = `${FOLDER}/${INPUT_FILE}`;
+const OPFILE = `${FOLDER}/${OUTPUT_FILE}`;
 
 // If PORT is not defined, use default port
 const PORT = process.env.PORT || 8999;

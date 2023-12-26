@@ -2,11 +2,14 @@
 
 # Define the input file
 FOLDER=data
-INFILE=$FOLDER/input.txt
-OPFILE=$FOLDER/output.txt
+INFILE=$(ls $FOLDER | grep input)
+OPFILE=$(ls $FOLDER | grep output)
+
+INFILE=$FOLDER/$INFILE
+OPFILE=$FOLDER/$OPFILE
 
 # read .env file
-ENVS = $(cat .env | grep -v ^# | xargs)
+ENVS=$(cat .env | grep -v ^# | xargs)
 # export .env file
 for env in $ENVS; do
   export $env
