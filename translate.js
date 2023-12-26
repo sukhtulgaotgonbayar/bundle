@@ -47,7 +47,7 @@ const lines = file.split('\n');
       fs.appendFileSync(OPFILE, `${data?.result || null}\n`);
     } catch (error) {
       console.log(error);
-      fs.appendFileSync(OPFILE, 'error\n');
+      fs.appendFileSync(OPFILE, 'null\n');
     }
     // Sleep for 1 second
     await new Promise(resolve => setTimeout(resolve, 500));
