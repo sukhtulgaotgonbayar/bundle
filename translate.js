@@ -53,7 +53,7 @@ const lines = file.split('\n');
       fs.appendFileSync(OPFILE, 'null\n');
     }
     // Sleep for 1 second
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     // Remove line from input file
     const inputLines = fs.readFileSync(INFILE, 'utf-8').split('\n');
