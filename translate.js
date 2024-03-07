@@ -10,6 +10,8 @@ dotenv.config();
 const PORT = process.env.PORT || 8999;
 const { QUEUE_SERVICE_URL } = process.env;
 
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 const transltionRequest = async (sentence) => {
   return await axios.get(`http://0.0.0.0:${PORT}/api`, {
     params: {
@@ -79,6 +81,9 @@ const translate = async (queuePayload) => {
   } catch (error) {
     console.log(error);
     await closeConnection();
+    console.log("retrying translate...");
+    await delay(3000);
+    await translate(queuePayload);
   }
 };
 
