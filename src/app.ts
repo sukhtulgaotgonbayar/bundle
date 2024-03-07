@@ -23,7 +23,7 @@ const fastify = Fastify({ logger: true });
 
 	await fastify.register(myPlugin, {});
 
-	const { PAGE_COUNT = "5", PORT = "8999" } = process.env;
+	const { PAGE_COUNT = "2", PORT = "8999" } = process.env;
 
 	console.log("connecting to puppeteer...");
 

@@ -1,63 +1,95 @@
 const axios = require('axios');
 const qs = require('qs');
 const dotenv = require('dotenv');
-const fs = require('fs');
-const { exit } = require('process');
+const { connectToDB, closeConnection } = require("./config/db");
 
 // Load .env file
 dotenv.config();
 
-// Define the input file
-const FOLDER = 'data';
-const files = fs.readdirSync(FOLDER);
-const OUTPUT_FILE = files.find(file => file.includes('output'));
-const INPUT_FILE = files.find(file => file.includes('input'));
-const INFILE = `${FOLDER}/${INPUT_FILE}`;
-const OPFILE = `${FOLDER}/${OUTPUT_FILE}`;
-
 // If PORT is not defined, use default port
 const PORT = process.env.PORT || 8999;
+const { QUEUE_SERVICE_URL } = process.env;
 
-const file = fs.readFileSync(INFILE, 'utf-8');
-const lines = file.split('\n');
+const transltionRequest = async (sentence) => {
+  return await axios.get(`http://0.0.0.0:${PORT}/api`, {
+    params: {
+      from: "en",
+      to: "mn",
+      text: sentence,
+    },
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    paramsSerializer: (params) => qs.stringify(params),
+  });
+};
+
+const queueService = async () => {
+  let queueResponse = await axios.get(QUEUE_SERVICE_URL);
+
+  const { status } = queueResponse;
+
+  // retry queue service
+  while (status !== 200) {
+    console.log("retrying get queue service...");
+    queueResponse = await axios.get(QUEUE_SERVICE_URL);
+    await delay(3000);
+  }
+
+  const {
+    data: {
+      payload
+    },
+  } = queueResponse;
+
+  return payload
+}
+
+const transltionService = async (sentence) => {
+  let translationResponse = await transltionRequest(sentence);
+  const { status: translationStatus } = translationResponse;
+
+  // retry translation service
+  while (translationStatus !== 200) {
+    console.log("retrying translation service...");
+    translationResponse = await transltionRequest(sentence);
+    await delay(3000);
+  }
+
+  const {
+    data: { result },
+  } = translationResponse;
+
+  return result;
+}
+
+const translate = async (queuePayload) => {
+  try {
+    const { id, sentence } = queuePayload;
+    const mnTranslation = await transltionService(sentence);
+
+    const db = await connectToDB()
+    const collection = db.collection("result");
+
+    console.log({ mn: mnTranslation, en: sentence })
+    await collection.insertOne({ mn: mnTranslation, en: sentence });
+
+    const sentenceCollection = db.collection("sentence");
+    await sentenceCollection.updateOne({ _id: id }, { $set: { isTranslated: true } });
+  } catch (error) {
+    console.log(error);
+    await closeConnection();
+  }
+};
+
+const tranlateLoop = async () => {
+  while (true) {
+    const queuePayload = await queueService();
+    await translate(queuePayload);
+  }
+}
 
 (async () => {
-  // await loops
-  if ((lines.length === 1 && lines[0] === '') || lines.length === 0) {
-    console.log('No lines to translate', PORT);
-    exit(0);
-  }
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    try {
-      // Send the request
-      const response = await axios.get(`http://0.0.0.0:${PORT}/api`, {
-        params: {
-          from: 'en',
-          to: 'mn',
-          text: line
-        },
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        paramsSerializer: params => qs.stringify(params)
-      });
-
-      const data = response.data;
-      console.log('Translated: ', data?.result);
-      // Append the result to the output file
-      fs.appendFileSync(OPFILE, `${data?.result || null}\n`);
-    } catch (error) {
-      console.log(error);
-      fs.appendFileSync(OPFILE, 'null\n');
-    }
-    // Sleep for 1 second
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // Remove line from input file
-    const inputLines = fs.readFileSync(INFILE, 'utf-8').split('\n');
-    inputLines.shift();
-    fs.writeFileSync(INFILE, inputLines.join('\n'));
-  }
+  tranlateLoop();
+  console.log("queue endeds");
 })();

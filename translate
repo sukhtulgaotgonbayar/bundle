@@ -21,12 +21,26 @@ then
   PORT=8999
 fi
 
+echo "Input file: $INFILE"
+
 # Read the input file line by line
 while read -r LINE
 do
-  # Print the line to query string
-  response=$(curl -G --data-urlencode "text=$LINE" "http://127.0.0.1:$PORT/api?from=en&to=mn")
-  echo $response | jq -r '.result' >> $OPFILE
+  { # try
+    # Print the line to query string
+    response=$(curl -G --data-urlencode "text=$LINE" "http://127.0.0.1:$PORT/api?from=en&to=mn")
+    if ["${response}"]; then
+      # echo $response | jq -r '.result' >> $OPFILE
+      echo 'success'
+    else
+      echo 'error'
+    fi
+
+    # echo $response | jq -r '.result' >> $OPFILE
+  } || { # catch
+    # Print the line to query string
+    echo 'ello'
+  }
 
   # remove line form input file
   sed '1d' $INFILE > tmpfile; mv tmpfile $INFILE
