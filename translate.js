@@ -2,6 +2,7 @@ const axios = require('axios');
 const qs = require('qs');
 const dotenv = require('dotenv');
 const { connectToDB, closeConnection } = require("./config/db");
+const { ObjectId } = require("mongodb");
 
 // Load .env file
 dotenv.config();
@@ -75,9 +76,8 @@ const translate = async (queuePayload) => {
 
     console.log({ mn: mnTranslation, en: sentence })
     await collection.insertOne({ mn: mnTranslation, en: sentence });
-
     const sentenceCollection = db.collection("sentence");
-    await sentenceCollection.updateOne({ _id: id }, { $set: { isTranslated: true } });
+    await sentenceCollection.updateOne({ _id: new ObjectId(id) }, { $set: { isTranslated: true } });
   } catch (error) {
     console.log(error);
     await closeConnection();
@@ -95,6 +95,7 @@ const tranlateLoop = async () => {
 }
 
 (async () => {
+  console.log("starting ...");
+  await delay(5000);
   tranlateLoop();
-  console.log("queue endeds");
 })();
