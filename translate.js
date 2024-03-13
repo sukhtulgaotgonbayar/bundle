@@ -78,6 +78,7 @@ const translate = async (queuePayload) => {
     await collection.insertOne({ mn: mnTranslation, en: sentence });
     const sentenceCollection = db.collection("sentence");
     await sentenceCollection.updateOne({ _id: new ObjectId(id) }, { $set: { isTranslated: true } });
+    await delay(1000);
   } catch (error) {
     console.log(error);
     await closeConnection();
