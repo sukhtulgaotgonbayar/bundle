@@ -1,6 +1,6 @@
-const axios = require('axios');
-const qs = require('qs');
-const dotenv = require('dotenv');
+const axios = require("axios");
+const qs = require("qs");
+const dotenv = require("dotenv");
 const { connectToDB, closeConnection } = require("./config/db");
 const { ObjectId } = require("mongodb");
 
@@ -40,13 +40,11 @@ const queueService = async () => {
   }
 
   const {
-    data: {
-      payload
-    },
+    data: { payload },
   } = queueResponse;
 
-  return payload
-}
+  return payload;
+};
 
 const transltionService = async (sentence) => {
   let translationResponse = await transltionRequest(sentence);
@@ -64,20 +62,29 @@ const transltionService = async (sentence) => {
   } = translationResponse;
 
   return result;
-}
+};
 
 const translate = async (queuePayload) => {
   try {
-    const { id, sentence } = queuePayload;
+    const { id, sentence, source } = queuePayload;
     const mnTranslation = await transltionService(sentence);
 
-    const db = await connectToDB()
+    const db = await connectToDB();
     const collection = db.collection("result");
 
-    console.log({ mn: mnTranslation, en: sentence })
-    await collection.insertOne({ mn: mnTranslation, en: sentence });
+    console.log({ mn: mnTranslation, en: sentence });
+
+    await collection.insertOne({
+      mn: mnTranslation,
+      en: sentence,
+      source: source,
+    });
+
     const sentenceCollection = db.collection("sentence");
-    await sentenceCollection.updateOne({ _id: new ObjectId(id) }, { $set: { isTranslated: true } });
+    await sentenceCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { isTranslated: true } }
+    );
     await delay(1000);
   } catch (error) {
     console.log(error);
@@ -93,10 +100,15 @@ const tranlateLoop = async () => {
     const queuePayload = await queueService();
     await translate(queuePayload);
   }
-}
+};
 
 (async () => {
-  console.log("starting ...");
-  await delay(5000);
-  tranlateLoop();
+  try {
+    console.log("starting ...");
+    await delay(5000);
+    tranlateLoop();
+  } catch (error) {
+    console.log(error);
+    tranlateLoop();
+  }
 })();
