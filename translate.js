@@ -96,19 +96,18 @@ const translate = async (queuePayload) => {
 };
 
 const tranlateLoop = async () => {
-  while (true) {
-    const queuePayload = await queueService();
-    await translate(queuePayload);
+  try {
+    while (true) {
+      const queuePayload = await queueService();
+      await translate(queuePayload);
+    }
+  } catch (error) {
+    console.log(error);
+    await tranlateLoop();
   }
 };
 
 (async () => {
-  try {
-    console.log("starting ...");
-    await delay(5000);
-    tranlateLoop();
-  } catch (error) {
-    console.log(error);
-    tranlateLoop();
-  }
+  console.log("starting ...");
+  await tranlateLoop();
 })();
